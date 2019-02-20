@@ -65,6 +65,10 @@ router.get('/signout', passport.authenticate('jwt', { session: false}), function
   res.json({success: true, msg: 'Sign out successfully.'});
 });
 
+router.get('/test',function(req, res) {
+  res.json({success: true, msg: 'test ok.'});
+});
+
 router.post('/produit', passport.authenticate('jwt', { session: false}), function(req, res) {
   var token = getToken(req.headers);
   if (token) {
