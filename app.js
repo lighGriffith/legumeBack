@@ -8,7 +8,8 @@ var morgan = require('morgan');
 var mongoose = require('mongoose');
 var passport = require('passport');
 var cors = require('cors');
-var config = require('./config/database');
+var config = require('./config/indexDatabase');
+var errorHandler=require('./js/error/errorHandler');
 
 mongoose.connect(config.database, { useCreateIndex: true, useNewUrlParser: true });
 
@@ -27,7 +28,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(morgan('dev'));
+if(process.env.NODE_ENV!="test"){
+  app.use(morgan('dev'));
+}
+
 app.use(passport.initialize());
 
 app.get('/', function(req, res) {
@@ -36,22 +40,7 @@ app.get('/', function(req, res) {
 
 app.use('/api', api);
 
-// remonte les erreurs 404 à error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
-
 // error handler
-app.use(function(err, req, res, next) {
-  // remonte les erreurs uniquement en environnement de dév.
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render de la page d'erreur
-  res.status(err.status || 500);
-  res.render('error');
-});
+app.use(errorHandler);
 
 module.exports = app;

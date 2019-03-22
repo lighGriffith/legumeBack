@@ -1,36 +1,41 @@
 var mongoose = require('mongoose');
 var passport = require('passport');
-var config = require('../config/database');
+var config = require('../config/indexDatabase');
 require('../config/passport')(passport);
 var express = require('express');
 var jwt = require('jsonwebtoken');
 var router = express.Router();
 var User = require("../models/user");
 var Commande =require('../models/commande');
-var Produit = require('../models/produit')
+var Produit = require('../models/produit');
+var validatorUser=require('../js/validator/validator');
 
 router.post('/signup', function(req, res) {
   if (!req.body.username || !req.body.password) {
     res.json({success: false, msg: 'Please pass username and password.'});
   } else {
-    console.log(req.body);
     var newUser = new User({
       username: req.body.username,
       password: req.body.password,
-      name:req.body.name,
+      email:req.body.email,
       lat     : req.body.lat,
       lng    :req.body.lng,
       telephone    : req.body.telephone,
-      typeFermier :req.body.typeFermier,
+      isFermier :req.body.isFermier,
     });
+    var validMessage=validatorUser.validateUser(newUser);
     // save the user
-    newUser.save(function(err) {
-      if (err) {
-        console.log(err);
-        return res.json({success: false, msg: 'Username already exists.'});
-      }
-      res.json({success: true, msg: 'Successful created new user.'});
-    });
+    if(validMessage!==true){
+      return res.json({success: false, error:{type:"validation",liste_erreur:validMessage}});
+    }else{
+      newUser.save(function(err) {
+        if (err) {
+          console.log(err);
+          return res.json({success: false,error:{type:"mongo" ,msg: 'Username already exists.'}});
+        }
+        res.json({success: true, msg: 'Successful created new user.'});
+      });
+    }
   }
 });
 

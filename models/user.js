@@ -6,11 +6,11 @@ var bcrypt = require('bcrypt-nodejs');
 var UserSchema = new Schema({
   username: {type: String,unique: true,required: true},
   password: {type: String,required: true},
-  name: { type: String, default: "",required: true },
-  lat     : { type: String, default: "",required: true },
-  lng    : { type: String, default: "" ,required: true},
-  telephone    : { type: String, default: "",required: true },
-  typeFermier  : { type: String, default: "" ,required: true}
+  email: { type: String, required: true },
+  lat     : { type: String, min: 1, max: 9,required: true },
+  lng    : {type:String, min: 1, max: 9 ,required: true},
+  telephone    : { type: String, min: 10, max: 10,required: true },
+  isFermier  : { type: Boolean, default: false ,required: true}
 });
 
 UserSchema.pre('save', function (next) {
