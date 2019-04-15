@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node ./bin/start",
     "test": "mocha ./test/*.js --timeout 10000",
-    "testWindow": "SET NODE_TLS_REJECT_UNAUTHORIZED=0&SET NODE_ENV=test& mocha ./test/*.js --timeout 10000 --reporter mochawesome"
+    "testWindow": "SET NODE_TLS_REJECT_UNAUTHORIZED=0&SET NODE_ENV=test& mocha ./test/*.js --timeout 10000 --reporter mochawesome",
+    "initWindow": "SET NODE_ENV=test&node ./test/initDataBase.js"
   },
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",

@@ -1,161 +1,41 @@
 var mongoose = require('mongoose');
+var express = require('express');
+var router = express.Router();
+var userController=require('../js/controller/userController');
+var produitController=require('../js/controller/produitController');
+var commandeController=require('../js/controller/commandeController');
 var passport = require('passport');
 var config = require('../config/indexDatabase');
-require('../config/passport')(passport);
-var express = require('express');
+require('../config/passport')(passport)
 var jwt = require('jsonwebtoken');
-var router = express.Router();
-var User = require("../models/user");
-var Commande =require('../models/commande');
-var Produit = require('../models/produit');
-var validatorUser=require('../js/validator/validator');
 
-router.post('/signup', function(req, res) {
-  if (!req.body.username || !req.body.password) {
-    res.json({success: false, msg: 'Please pass username and password.'});
-  } else {
-    var newUser = new User({
-      username: req.body.username,
-      password: req.body.password,
-      email:req.body.email,
-      lat     : req.body.lat,
-      lng    :req.body.lng,
-      telephone    : req.body.telephone,
-      isFermier :req.body.isFermier,
-    });
-    var validMessage=validatorUser.validateUser(newUser);
-    // save the user
-    if(validMessage!==true){
-      return res.json({success: false, error:{type:"validation",liste_erreur:validMessage}});
-    }else{
-      newUser.save(function(err) {
-        if (err) {
-          console.log(err);
-          return res.json({success: false,error:{type:"mongo" ,msg: 'Username already exists.'}});
-        }
-        res.json({success: true, msg: 'Successful created new user.'});
-      });
-    }
-  }
-});
+//USER
+  //Inscription
+  router.post('/signup', userController.signup);
+  //Identification
+  router.post('/signin', userController.signin);
+  //Déconnexion
+  router.get('/signout', userController.signout);
+  //get user
+  router.get('/user/:username/info', passport.authenticate('jwt', { session: false}), function(req,res,next){userController.getInfoUser(req,res,next);});
 
-router.post('/signin', function(req, res) {
-  User.findOne({
-    username: req.body.username
-  }, function(err, user) {
-    if (err) throw err;
+//PRODUIT
+  //ajout d'un produit.
+  router.post('/user/:id_user/produit', passport.authenticate('jwt', { session: false}), function(req,res,next){produitController.post(req,res,next);});
+  //retrait de tous les produits pour un utilisateur.
+  router.get('/user/:id_user/produit', passport.authenticate('jwt', { session: false}), function(req,res,next){produitController.get(req,res,next);});
+  //suppression d'un produit pour un utilisateur.
+  router.delete('/user/:id_user/produit/:id_produit', passport.authenticate('jwt', { session: false}), function(req,res,next){produitController.delete(req,res,next);});
+  //update d'un produit
+  router.put('/user/:id_user/produit', passport.authenticate('jwt', { session: false}), function(req,res,next){produitController.put(req,res,next);});
 
-    if (!user) {
-      res.status(401).send({success: false, msg: 'Authentication failed. User not found.'});
-    } else {
-      // check if password matches
-      user.comparePassword(req.body.password, function (err, isMatch) {
-        if (isMatch && !err) {
-          // if user is found and password is right create a token
-          var token = jwt.sign(user.toJSON(), config.secret, {
-            expiresIn: 604800 // 1 week
-          });
-          // return the information including token as JSON
-          res.json({success: true, token: 'JWT ' + token});
-        } else {
-          res.status(401).send({success: false, msg: 'Authentication failed. Wrong password.'});
-        }
-      });
-    }
-  });
-});
-
-router.get('/signout', passport.authenticate('jwt', { session: false}), function(req, res) {
-  req.logout();
-  res.json({success: true, msg: 'Sign out successfully.'});
-});
-
-router.get('/test',function(req, res) {
-  res.json({success: true, msg: 'test ok.'});
-});
-
-router.post('/produit', passport.authenticate('jwt', { session: false}), function(req, res) {
-  var token = getToken(req.headers);
-  if (token) {
-    var produit = new Produit({
-      nom: req.body.nom,
-      quantite: req.body.quantite,
-      prix: req.body.prix,
-      username: req.body.username,
-    });
-
-    produit.save(function(err) {
-      if (err) {
-        return res.json({success: false, msg: 'Save Produit failed.'});
-      }
-      res.json({success: true, msg: 'Successful created new Produit.'});
-    });
-  } else {
-    return res.status(403).send({success: false, msg: 'Unauthorized.'});
-  }
-});
-
-router.get('/produit', passport.authenticate('jwt', { session: false}), function(req, res) {
-  var token = getToken(req.headers);
-  if (token) {
-    Produit.find(function (err, produits) {
-      if (err) return next(err);
-      res.json(produits);
-    });
-  } else {
-    return res.status(403).send({success: false, msg: 'Unauthorized.'});
-  }
-});
-
-// service pour user.
-router.post('/user/:username/produit', passport.authenticate('jwt', { session: false}), function(req, res) {
-  var token = getToken(req.headers);
-
-  if (token) {
-    var username = req.params.username;
-    var produit = new Produit({
-      nom: req.body.nom,
-      quantite: req.body.quantite,
-      prix: req.body.prix,
-      username: username,
-    });
-
-    produit.save(function(err) {
-      if (err) {
-        return res.json({success: false, msg: 'Save Produit failed.'});
-      }
-      res.json({success: true, msg: 'Successful created new Produit.'});
-    });
-  } else {
-    return res.status(403).send({success: false, msg: 'Unauthorized.'});
-  }
-});
-
-router.get('/user/:username/produit', passport.authenticate('jwt', { session: false}), function(req, res) {
-  var token = getToken(req.headers);
-  if (token) {
-    var username = req.params.username;
-    Produit.find({ username: username },function (err, produits) {
-      if (err) return next(err);
-      res.json(produits);
-    });
-  } else {
-    return res.status(403).send({success: false, msg: 'Unauthorized.'});
-  }
-});
-
-
-getToken = function (headers) {
-  if (headers && headers.authorization) {
-    var parted = headers.authorization.split(' ');
-    if (parted.length === 2) {
-      return parted[1];
-    } else {
-      return null;
-    }
-  } else {
-    return null;
-  }
-};
+//COMMANDE
+//ajout d'une commande
+router.post('/user/commande', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.post(req,res,next);});
+//retrait de toutes les commandes d'un vendeur ou d'un acheteur
+router.get('/user/:id_user/commande/:is_vendeur', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.get(req,res,next);});
+router.get('/user/:id_user/commande', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.get(req,res,next);});
+//supprimer une commande spécifique
+router.delete('/user/:id_user/commande/:id_commande', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.delete(req,res,next);});
 
 module.exports = router;
