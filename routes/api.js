@@ -12,6 +12,8 @@ var jwt = require('jsonwebtoken');
 //USER
   //Inscription
   router.post('/signup', userController.signup);
+  //Inscription
+  router.post('/test', userController.test);
   //Identification
   router.post('/signin', userController.signin);
   //Déconnexion

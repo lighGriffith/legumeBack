@@ -19,12 +19,10 @@ const schema = {
       lat:{
          type:"string",
          min:1,
-         max:9
       },
       lng:{
          type:"string",
          min:1,
-         max:9
       },
       telephone:{
          type:"string",

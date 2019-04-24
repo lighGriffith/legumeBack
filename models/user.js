@@ -10,7 +10,7 @@ var UserSchema = new Schema({
   lat     : { type: String, min: 1, max: 9,required: true },
   lng    : {type:String, min: 1, max: 9 ,required: true},
   telephone    : { type: String, min: 10, max: 10,required: true },
-  isFermier  : { type: Boolean, default: false ,required: true}
+  isFermier  : { type: Boolean, default: false }
 });
 
 UserSchema.pre('save', function (next) {

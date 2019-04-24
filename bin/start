@@ -10,7 +10,8 @@ var http = require('http');
  * Configure express port.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '3001');
+console.log(port);
 app.set('port', port);
 
 /**
