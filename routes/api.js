@@ -19,6 +19,8 @@ var jwt = require('jsonwebtoken');
   //Déconnexion
   router.get('/signout', userController.signout);
   //get user
+  router.get('/users', passport.authenticate('jwt', { session: false}), function(req,res,next){userController.getUsers(req,res,next);});
+  //get user
   router.get('/user/:username/info', passport.authenticate('jwt', { session: false}), function(req,res,next){userController.getInfoUser(req,res,next);});
 
 //PRODUIT

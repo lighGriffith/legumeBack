@@ -9,6 +9,19 @@ controller.test=function(req, res) {
   return res.json({success: true});
 };
 
+controller.getUsers = function(req, res,next) {
+  if(passportController.checkToken(req.headers)){
+      User.find({},function (err, user) {
+        if (err) return next(err);
+        console.log(user);
+        res.json(user);
+      });
+  }else{
+    res.status(403).send({success: false, msg: 'Unauthorized.'});
+  }
+}
+
+
 controller.signup=function(req, res) {
   console.log(req.body);
   if (!req.body.username || !req.body.password) {

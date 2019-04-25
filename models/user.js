@@ -7,8 +7,8 @@ var UserSchema = new Schema({
   username: {type: String,unique: true,required: true},
   password: {type: String,required: true},
   email: { type: String, required: true },
-  lat     : { type: String, min: 1, max: 9,required: true },
-  lng    : {type:String, min: 1, max: 9 ,required: true},
+  lat     : { type: Number, min: -90, max: 90,required: true },
+  lng    : {type:Number, min: -180, max: 180 ,required: true},
   telephone    : { type: String, min: 10, max: 10,required: true },
   isFermier  : { type: Boolean, default: false }
 });
