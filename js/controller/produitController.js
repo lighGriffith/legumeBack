@@ -4,9 +4,12 @@ var validator=require('../validator/validator');
 let controller={};
 
 controller.post= function(req, res,next) {
+  console.log(req.body);
+  console.log(req.headers);
   if(passportController.checkToken(req.headers)){
     var idUser = req.params.id_user;
     var produit = new Produit({nom: req.body.nom,quantite: req.body.quantite,quantiteInitiale:req.body.quantite,prix: req.body.prix,idUser: idUser});
+    console.log(produit);
     var validMessage=validator.validate(produit,"produit");
     if(validMessage!==true){
       res.json({success: false, error:{type:"validation",liste_erreur:validMessage}});
