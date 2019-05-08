@@ -16,6 +16,16 @@ const schema = {
       email:{
          type:"email"
       },
+      adresse : {
+         type:"string",
+         min:2,
+         max:100
+      },
+      ville:{
+         type:"string",
+         min:1,
+         max:100
+      },
       lat:{
          type:"number",
          min:-90,

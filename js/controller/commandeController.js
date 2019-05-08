@@ -1,5 +1,6 @@
 
 var Commande =require('../../models/commande');
+var User = require('../../models/user');
 var Produit =require('../../models/produit');
 var passportController=require('./passportController');
 var validator=require('../validator/validator');
@@ -14,7 +15,7 @@ controller.post= function(req, res,next) {
     }else{
       Produit.findOneAndUpdate({ _id: commande.idProduit,idUser:commande.idVendeur,quantite:{$gt: commande.quantite} }, {  $inc: { quantite: -commande.quantite }  }, { new: true }, function(err, produit) {
         if (err) return next(err);
-        if(produit){
+        if(produit.quantite){
           commande.save(function(err) {
             if (err) {
               res.json({success: false, msg: 'Save Commande failed.'});
@@ -40,9 +41,27 @@ controller.get= function(req, res,next) {
       }else{
         commande.idAcheteur=req.params.id_user;
       }
-      Commande.find(commande,function (err, produits) {
+      Commande.find(commande).lean().exec(function (err, commandes) {
         if (err) return next(err);
-        res.json(produits);
+        var promisses=[];
+        for (let key in commandes) {
+          let commande=commandes[key];
+          promisses.push(new Promise(function (resolve, reject) {
+            User.findById(commande.idVendeur).lean().exec(function (err, user) {
+              if (!err&&user){
+                user.password=undefined;
+                commande.infoVendeur=user;
+                resolve();
+              }else{
+                resolve();
+              }
+            });
+          }));
+        }
+        Promise.all(promisses).then(function(values) {
+          res.json(commandes);
+        });
+
       });
   }else{
     res.status(403).send({success: false, msg: 'Unauthorized.'});

@@ -34,7 +34,9 @@ controller.signup=function(req, res) {
       lat     : req.body.lat,
       lng    :req.body.lng,
       telephone    : req.body.telephone,
-      isFermier :  false
+      isFermier :  false,
+      adresse : req.body.adresse,
+      ville : req.body.ville
     });
     console.log(newUser);
     var validMessage=validatorUser.validate(newUser,"user");
