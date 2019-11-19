@@ -9,21 +9,17 @@ controller.test=function(req, res) {
   return res.json({success: true});
 };
 
-controller.getUsers = function(req, res,next) {
-  if(passportController.checkToken(req.headers)){
-      User.find({},function (err, user) {
-        if (err) return next(err);
-        console.log(user);
-        res.json(user);
-      });
-  }else{
-    res.status(403).send({success: false, msg: 'Unauthorized.'});
-  }
+controller.getUsers = async function(req, res,next) {
+    try{
+      let users = await User.find({});
+      res.json(users);
+    }catch(err){
+      return next(err);
+    }
 }
 
 
-controller.signup=function(req, res) {
-  console.log(req.body);
+controller.signup=async function(req, res) {
   if (!req.body.username || !req.body.password) {
     res.json({success: false, msg: 'Please pass username and password.'});
   } else {
@@ -38,38 +34,31 @@ controller.signup=function(req, res) {
       adresse : req.body.adresse,
       ville : req.body.ville
     });
-    console.log(newUser);
     var validMessage=validatorUser.validate(newUser,"user");
     // save the user
     if(validMessage!==true){
       return res.json({success: false, error:{type:"validation",liste_erreur:validMessage}});
     }else{
-      console.log(newUser);
-      newUser.save(function(err) {
-        if (err) {
-          console.log(err);
-          return res.json({success: false,error:{type:"mongo" ,msg: 'Username already exists.'}});
-        }
-        res.json({success: true, user: newUser});
-      });
+      try{
+        let user = await newUser.save();
+        res.json({success: true, user: user});
+      }catch(err){
+        return res.json({success: false,error:{type:"mongo" ,msg: 'Username already exists.'}});
+      }
     }
   }
 };
 
 
-controller.signin= function(req, res) {
-  console.log(req.body);
-  User.findOne({
-    email: req.body.email
-  }, function(err, user) {
-    if (err) throw err;
-
+controller.signin= async function(req, res) {
+  try{
+    let user= await User.findOne({email: req.body.email});
     if (!user) {
       res.json({success: false, error:{message: 'Authentication failed. User not found.'}});
     } else {
       // check if password matches
       user.comparePassword(req.body.password, function (err, isMatch) {
-        if (isMatch && !err) {
+        if (isMatch) {
           // if user is found and password is right create a token
           var token = jwt.sign(user.toJSON(), config.secret, {
             expiresIn: 604800 // 1 week
@@ -81,21 +70,25 @@ controller.signin= function(req, res) {
         }
       });
     }
-  });
+  }catch(err){
+    throw err;
+  }
 };
 
 controller.signout= function(req, res) {
-  req.logout();
+  //ne fait rien pour le moment
   res.json({success: true, msg: 'Sign out successfully.'});
 }
 
-controller.getInfoUser = function(req, res,next) {
+controller.getInfoUser = async function(req, res,next) {
   if(passportController.checkToken(req.headers)){
       var username = req.params.username;
-      User.find({ username: username },function (err, user) {
-        if (err) return next(err);
+      try{
+        let user = await User.find({ username: username });
         res.json(user);
-      });
+      }catch(err){
+        return next(err);
+      }
   }else{
     res.status(403).send({success: false, msg: 'Unauthorized.'});
   }

@@ -15,7 +15,6 @@ getToken = function (headers) {
 
 controller.checkToken=function(headers) {
     var token = getToken(headers);
-    console.log(token);
     if (token) {
       return true;
     } else {

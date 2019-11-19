@@ -16,13 +16,7 @@ mongoose.connect(config.database, { useCreateIndex: true, useNewUrlParser: true 
 var api = require('./routes/api');
 
 var app = express();
-
-// partie vue html
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-
 app.use(cors());
-
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -31,15 +25,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 if(process.env.NODE_ENV!="test"){
   app.use(morgan('dev'));
 }
-
 app.use(passport.initialize());
-
 app.get('/', function(req, res) {
   res.send('Page under construction.');
 });
 
 app.use('/api', api);
-
 // error handler
 app.use(errorHandler);
 

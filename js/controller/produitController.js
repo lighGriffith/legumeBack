@@ -1,56 +1,68 @@
 var Produit = require('../../models/produit');
+var Commande =require('../../models/commande');
 var passportController=require('./passportController');
 var validator=require('../validator/validator');
 let controller={};
 
-controller.post= function(req, res,next) {
-  console.log(req.body);
-  console.log(req.headers);
+controller.post= async function(req, res,next) {
   if(passportController.checkToken(req.headers)){
     var idUser = req.params.id_user;
     var produit = new Produit({nom: req.body.nom,quantite: req.body.quantite,quantiteInitiale:req.body.quantite,prix: req.body.prix,idUser: idUser});
-    console.log(produit);
     var validMessage=validator.validate(produit,"produit");
     if(validMessage!==true){
       res.json({success: false, error:{type:"validation",liste_erreur:validMessage}});
     }else{
-      produit.save(function(err) {
-        if (err) {
-          res.json({success: false, msg: 'Save Produit failed.'});
-        }
-        res.json({success: true, produit: produit});
-      });
+      try{
+        let product = await produit.save();
+        res.json({success: true, produit: product});
+      }catch(err){
+        res.json({success: false, msg: 'Save Produit failed.'});
+      }
     }
   }else{
     res.status(403).send({success: false, msg: 'Unauthorized.'});
   }
 };
 
-controller.get= function(req, res,next) {
+controller.get= async function(req, res,next) {
   if(passportController.checkToken(req.headers)){
-      var idUser = req.params.id_user;
-      Produit.find({ idUser: idUser },function (err, produits) {
-        if (err) return next(err);
-        res.json(produits);
-      });
+    try{
+      let product = await Produit.find({ idUser: req.params.id_user });
+      res.json(product);
+    }catch(err){
+      return next(err);
+    }
   }else{
     res.status(403).send({success: false, msg: 'Unauthorized.'});
   }
 }
 
-controller.delete= function(req, res,next) {
+controller.delete= async function(req, res,next) {
   if(passportController.checkToken(req.headers)){
       var idUser = req.params.id_user;
-      Produit.findByIdAndRemove(req.params.id_produit ,function (err) {
-        if (err) return next(err);
-        res.json({success: true, msg: 'Le produit a bien été supprimé.'});
-      });
+      try{
+        let ancienProduit = await Produit.findByIdAndRemove(req.params.id_produit);
+        if(!ancienProduit){
+          res.status(404).send({success: false, msg: 'Product not found.'})
+        }else{
+          if(ancienProduit){
+            let commandes = await Commande.deleteMany({'idProduit':req.params.id_produit });
+            if(commandes){
+              res.json({success: true, msg: 'Product successfully deleted.'});
+            }else{
+              res.json({success: false, msg: 'Probelm to delete commande'});
+            }
+          }
+        }
+      }catch(erreur){
+        return next(erreur);
+      }
   }else{
     res.status(403).send({success: false, msg: 'Unauthorized.'});
   }
 }
 
-controller.put= function(req, res,next) {
+controller.put= async function(req, res,next) {
   if(passportController.checkToken(req.headers)){
     var idUser = req.params.id_user;
     var produit = new Produit({nom: req.body.nom,quantite: req.body.quantite,quantiteInitiale:req.body.quantite,prix: req.body.prix,idUser: idUser});
@@ -58,12 +70,21 @@ controller.put= function(req, res,next) {
     if(validMessage!==true){
       res.json({success: false, error:{type:"validation",liste_erreur:validMessage}});
     }else{
-      Produit.findOneAndUpdate({_id:req.params._id},req.params,function(err,numberAffected) {
-        if (err) {
+      if(req.params.id_produit){
+        try{
+          const doc = await Produit.findOne({_id:req.params.id_produit});
+          if(produit.nom) doc.nom=produit.nom;
+          if(produit.quantite) doc.quantite=produit.quantite;
+          if(produit.prix) doc.prix=produit.prix;
+          if(produit.idUser) doc.idUser=produit.idUser;
+          await doc.save();
+          res.json({success: true, produit: doc});
+        }catch(erreur){
           res.json({success: false, msg: 'Update Produit failed.'});
         }
-        res.json({success: true, produit: produit});
-      });
+      }else{
+        res.json({success: false, msg: 'No id Product to update.'});
+      }
     }
   }else{
     res.status(403).send({success: false, msg: 'Unauthorized.'});

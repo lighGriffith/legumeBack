@@ -12,14 +12,14 @@ var jwt = require('jsonwebtoken');
 //USER
   //Inscription
   router.post('/signup', userController.signup);
-  //Inscription
+  //simple test
   router.post('/test', userController.test);
   //Identification
   router.post('/signin', userController.signin);
   //Déconnexion
   router.get('/signout', userController.signout);
   //get user
-  router.get('/users', passport.authenticate('jwt', { session: false}), function(req,res,next){userController.getUsers(req,res,next);});
+  router.get('/users', userController.getUsers);
   //get user
   router.get('/user/:username/info', passport.authenticate('jwt', { session: false}), function(req,res,next){userController.getInfoUser(req,res,next);});
 
@@ -31,15 +31,17 @@ var jwt = require('jsonwebtoken');
   //suppression d'un produit pour un utilisateur.
   router.delete('/user/:id_user/produit/:id_produit', passport.authenticate('jwt', { session: false}), function(req,res,next){produitController.delete(req,res,next);});
   //update d'un produit
-  router.put('/user/:id_user/produit', passport.authenticate('jwt', { session: false}), function(req,res,next){produitController.put(req,res,next);});
+  router.put('/user/:id_user/produit/:id_produit', passport.authenticate('jwt', { session: false}), function(req,res,next){produitController.put(req,res,next);});
 
 //COMMANDE
-//ajout d'une commande
-router.post('/user/commande', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.post(req,res,next);});
-//retrait de toutes les commandes d'un vendeur ou d'un acheteur
-router.get('/user/:id_user/commande/:is_vendeur', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.get(req,res,next);});
-router.get('/user/:id_user/commande', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.get(req,res,next);});
-//supprimer une commande spécifique
-router.delete('/user/:id_user/commande/:id_commande', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.delete(req,res,next);});
+  //ajout d'une commande
+  router.post('/user/:id_user/commande', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.post(req,res,next);});
+  //retrait de toutes les commandes d'un vendeur ou d'un acheteur
+  router.get('/user/:id_user/commande/:is_vendeur', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.get(req,res,next);});
+  router.get('/user/:id_user/commande', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.get(req,res,next);});
+  //supprimer une commande spécifique
+  router.delete('/user/:id_user/commande/:id_commande', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.delete(req,res,next);});
+  //update d'un produit
+  router.put('/user/:id_user/commande/:id_commande', passport.authenticate('jwt', { session: false}), function(req,res,next){commandeController.put(req,res,next);});
 
 module.exports = router;
